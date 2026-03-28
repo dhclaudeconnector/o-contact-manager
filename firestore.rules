@@ -1,0 +1,43 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ────────────────────────────────────────────────────────────────────────
+    // NGUYÊN TẮC: Tất cả truy cập từ client trực tiếp đều bị từ chối.
+    // Toàn bộ read/write đi qua Firebase Admin SDK (backend) — bypass rules.
+    // Rules này là lớp bảo vệ thứ 2 phòng khi Admin SDK bị cấu hình sai.
+    // ────────────────────────────────────────────────────────────────────────
+
+    // Chặn tất cả client-side access mặc định
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // contacts_index: chỉ đọc nếu đã authenticate (Firebase Auth)
+    // — Hiện tại chưa dùng Firebase Auth, để false
+    match /contacts_index/{contactId} {
+      allow read, write: if false;
+    }
+
+    match /contacts_detail/{contactId} {
+      allow read, write: if false;
+    }
+
+    match /email_lookup/{emailId} {
+      allow read, write: if false;
+    }
+
+    match /ud_key_lookup/{keyId} {
+      allow read, write: if false;
+    }
+
+    match /categories/{categoryId} {
+      allow read, write: if false;
+    }
+
+    match /meta/{docId} {
+      allow read, write: if false;
+    }
+  }
+}

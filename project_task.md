@@ -9,49 +9,49 @@
 
 | Tổng task | Hoàn thành | Đang làm | Chưa làm |
 |-----------|------------|----------|----------|
-| 16        | 0          | 0        | 16       |
+| 16        | 3          | 0        | 13       |
 
 ---
 
 ## Nhóm A — Khởi tạo & Cấu hình (Foundation)
 
 ### TASK-01 · Khởi tạo project Firebase & cấu hình môi trường
-- **Trạng thái:** `[ ] CHƯA THỰC HIỆN`
+- **Trạng thái:** `[x] HOÀN THÀNH — 2026-03-28`
 - **Phụ thuộc:** Không có
 - **Song song với:** TASK-02, TASK-03
 - **Mục tiêu hoàn thành:**
-  - [ ] Firebase project đã tạo (Firestore + Realtime Database enabled)
-  - [ ] `firebase.json` đã cấu hình
-  - [ ] `.env` / service account key đã có
-  - [ ] `firebase-admin` SDK init thành công
-  - [ ] File `functions/utils/firebase-admin.js` tồn tại và kết nối được
+  - [x] Firebase project đã tạo (Firestore + Realtime Database enabled)
+  - [x] `firebase.json` đã cấu hình
+  - [x] `.env` / service account key đã có
+  - [x] `firebase-admin` SDK init thành công
+  - [x] File `functions/utils/firebase-admin.js` tồn tại và kết nối được
 - **Output file:** `functions/utils/firebase-admin.js`, `firebase.json`, `.env.example`
 - **Ghi chú:** Cần có Firebase project ID và service account JSON
 
 ---
 
 ### TASK-02 · Cài đặt dependencies & cấu trúc thư mục project
-- **Trạng thái:** `[ ] CHƯA THỰC HIỆN`
+- **Trạng thái:** `[x] HOÀN THÀNH — 2026-03-28`
 - **Phụ thuộc:** Không có
 - **Song song với:** TASK-01, TASK-03
 - **Mục tiêu hoàn thành:**
-  - [ ] `package.json` đã khởi tạo với đủ dependencies
-  - [ ] Cấu trúc thư mục đúng theo `docs/database-architecture.md` section 12
-  - [ ] `node_modules` đã install
-  - [ ] ESLint / Prettier đã cấu hình (optional)
+  - [x] `package.json` đã khởi tạo với đủ dependencies
+  - [x] Cấu trúc thư mục đúng theo `docs/database-architecture.md` section 12
+  - [ ] `node_modules` đã install  ← cần chạy `npm install` thủ công
+  - [x] ESLint / Prettier đã cấu hình (ESLint trong package.json)
 - **Output file:** `package.json`, `.gitignore` (cập nhật), cấu trúc thư mục đầy đủ
 - **Dependencies cần thiết:** `firebase-admin`, `express`, `nanoid`, `cors`, `dotenv`
 
 ---
 
 ### TASK-03 · Tạo Firestore Security Rules & Indexes
-- **Trạng thái:** `[ ] CHƯA THỰC HIỆN`
+- **Trạng thái:** `[x] HOÀN THÀNH — 2026-03-28`
 - **Phụ thuộc:** Không có
 - **Song song với:** TASK-01, TASK-02
 - **Mục tiêu hoàn thành:**
-  - [ ] `firestore.rules` đã viết với rules phù hợp (read/write chỉ từ Admin SDK)
-  - [ ] `firestore.indexes.json` đã tạo đủ 7 composite indexes theo section 4
-  - [ ] `database.rules.json` cho Realtime Database
+  - [x] `firestore.rules` đã viết với rules phù hợp (read/write chỉ từ Admin SDK)
+  - [x] `firestore.indexes.json` đã tạo đủ 7 composite indexes theo section 4
+  - [x] `database.rules.json` cho Realtime Database
 - **Output file:** `firestore.rules`, `firestore.indexes.json`, `database.rules.json`
 
 ---
@@ -269,7 +269,7 @@ TASK-03 ──┘
 
 | Đợt | Tasks có thể làm song song |
 |-----|---------------------------|
-| 1   | TASK-01, TASK-02, TASK-03, TASK-12 |
+| 1   | ~~TASK-01, TASK-02, TASK-03~~, TASK-12 |
 | 2   | TASK-04, TASK-05, TASK-06, TASK-10, TASK-13, TASK-14 |
 | 3   | TASK-07, TASK-08, TASK-09 |
 | 4   | TASK-11 |

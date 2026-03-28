@@ -1,0 +1,14 @@
+feat(TASK-01,02,03): khởi tạo Firebase, dependencies, Firestore rules & indexes
+
+- TASK-01: Tạo functions/utils/firebase-admin.js (singleton init, Firestore + RTDB)
+- TASK-01: Tạo firebase.json (Firestore, Realtime DB, Functions, Emulators config)
+- TASK-01: Tạo .env.example với hướng dẫn cấu hình
+- TASK-02: Tạo package.json (express, firebase-admin, nanoid, cors, dotenv + devDeps)
+- TASK-02: Tạo .gitignore (bổ sung Firebase, secrets)
+- TASK-02: Tạo cấu trúc thư mục đầy đủ (functions/routes, middleware, utils, scripts, docs, tests)
+- TASK-03: Tạo firestore.rules (chặn client-side, chỉ Admin SDK)
+- TASK-03: Tạo firestore.indexes.json (7 composite indexes theo spec)
+- TASK-03: Tạo database.rules.json (Realtime Database rules)
+- Files: firebase-admin.js, firebase.json, .env.example, package.json, .gitignore, firestore.rules, firestore.indexes.json, database.rules.json
+
+Task: TASK-01,02,03 | Status: COMPLETED | Date: 2026-03-28

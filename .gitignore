@@ -27,7 +27,7 @@ tmp/
 temp/
 .tmp/
 
-# Env & secrets
+# Env & secrets ← KHÔNG BAO GIỜ COMMIT NHỮNG FILE NÀY
 .env
 .env.local
 .env.*.local
@@ -36,6 +36,7 @@ temp/
 .env.test
 serviceAccountKey.json
 *-serviceAccount.json
+*serviceAccountKey*.json
 
 # Editor
 .vscode/
@@ -55,3 +56,8 @@ lcov.info
 # Misc
 *.tgz
 *.zip
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log

@@ -1,0 +1,29 @@
+{
+  "rules": {
+    // ──────────────────────────────────────────────────────────────────────
+    // NGUYÊN TẮC: Chặn tất cả truy cập trực tiếp từ client.
+    // Admin SDK (backend) bypass rules này — chỉ backend mới được đọc/ghi.
+    // ──────────────────────────────────────────────────────────────────────
+
+    ".read": false,
+    ".write": false,
+
+    "api_keys": {
+      // Chỉ Admin SDK (server-side) được đọc/ghi
+      ".read": false,
+      ".write": false
+    },
+
+    "sync_status": {
+      ".read": false,
+      ".write": false
+    },
+
+    "import_jobs": {
+      "$jobId": {
+        ".read": false,
+        ".write": false
+      }
+    }
+  }
+}

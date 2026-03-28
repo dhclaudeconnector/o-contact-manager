@@ -45,33 +45,72 @@ Chi tiết đầy đủ: [`docs/database-architecture.md`](docs/database-archite
 - Node.js >= 18
 - Firebase project với Firestore và Realtime Database enabled
 - Firebase service account key (JSON)
+- Firebase CLI: `npm install -g firebase-tools`
 
 ---
 
 ## Cài đặt
 
+### 1. Chuẩn bị Firebase project
+
+1. Truy cập [Firebase Console](https://console.firebase.google.com)
+2. Tạo project mới hoặc dùng project có sẵn
+3. Bật **Firestore Database** (chọn Native mode)
+4. Bật **Realtime Database**
+5. Vào **Project Settings → Service accounts → Generate new private key**
+6. Tải file JSON về và đặt tên `serviceAccountKey.json`
+
+### 2. Clone & cài đặt
+
 ```bash
-# 1. Clone / tải về
+# Clone project
 git clone <repo-url>
 cd contacts-selfhost
 
-# 2. Cài dependencies
-cd functions
+# Cài dependencies
 npm install
 
-# 3. Cấu hình environment
+# Cấu hình môi trường
 cp .env.example .env
-# Sửa .env với Firebase project ID và đường dẫn service account
-
-# 4. Deploy Firestore rules & indexes
-firebase deploy --only firestore:rules,firestore:indexes
-
-# 5. Tạo API key đầu tiên
-node scripts/create-api-key.js
-
-# 6. Chạy server (dev)
-node functions/index.js
 ```
+
+### 3. Sửa file `.env`
+
+```env
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_SERVICE_ACCOUNT_PATH=./serviceAccountKey.json
+PORT=3000
+NODE_ENV=development
+```
+
+### 4. Deploy Firestore rules & indexes
+
+```bash
+firebase login
+firebase use your-firebase-project-id
+
+npm run deploy:rules
+# hoặc: firebase deploy --only firestore:rules,firestore:indexes
+```
+
+### 5. Tạo API key đầu tiên
+
+```bash
+node scripts/create-api-key.js
+# → Sẽ in ra API key, lưu lại để dùng trong header Authorization
+```
+
+### 6. Chạy server
+
+```bash
+# Development (auto-reload)
+npm run dev
+
+# Production
+npm start
+```
+
+Server chạy tại: `http://localhost:3000`
 
 ---
 
@@ -79,10 +118,10 @@ node functions/index.js
 
 ```bash
 # Import từ file VCF
-node scripts/import.js --file contacts_export.vcf
+npm run import -- --file contacts_export.vcf
 
 # Migration nếu đã có data cũ (chạy 1 lần)
-node scripts/migrate-v2.js
+npm run migrate
 ```
 
 ---
@@ -95,6 +134,7 @@ Tất cả requests cần header: `Authorization: Bearer <api-key>`
 
 | Method | Path | Mô tả |
 |--------|------|-------|
+| GET | `/health` | Health check |
 | GET | `/contacts` | Danh sách + search + filter |
 | GET | `/contacts/:id` | Chi tiết 1 contact |
 | POST | `/contacts` | Tạo mới |
@@ -141,6 +181,15 @@ Xem ví dụ chi tiết: [`docs/api.http`](docs/api.http)
 ---
 
 ## Trạng thái phát triển
+
+| Nhóm | Tasks | Trạng thái |
+|------|-------|-----------|
+| A — Foundation | TASK-01, 02, 03 | ✅ Hoàn thành |
+| B — Core Utils | TASK-04, 05, 06 | 🔲 Chưa làm |
+| C — API Routes | TASK-07, 08, 09 | 🔲 Chưa làm |
+| D — Middleware | TASK-10, 11 | 🔲 Chưa làm |
+| E — Scripts | TASK-12, 13, 14 | 🔲 Chưa làm |
+| F — Testing & Deploy | TASK-15, 16 | 🔲 Chưa làm |
 
 Xem chi tiết: [`project_task.md`](project_task.md)
 

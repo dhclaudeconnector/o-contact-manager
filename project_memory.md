@@ -1,6 +1,6 @@
 # Project Memory — Self-hosted Contact Manager
 
-> Tạo: 2026-03-28 | Task hoàn thành gần nhất: TASK-00 (Lên kế hoạch)  
+> Cập nhật: 2026-03-28 | Task hoàn thành gần nhất: TASK-01, TASK-02, TASK-03
 > Agent đọc file này để nắm toàn bộ context và tiếp tục làm việc
 
 ---
@@ -13,7 +13,7 @@
 - Backend: Firebase Firestore + Realtime Database
 - API Layer: Express.js / Cloud Functions + Firebase Admin SDK
 - Auth: API Key (hash lưu trong Realtime Database)
-- Language: Node.js (CommonJS)
+- Language: Node.js (CommonJS, `'use strict'`)
 
 **Tài liệu gốc:** `docs/database-architecture.md` — đây là spec chính, mọi implementation phải tuân theo
 
@@ -46,12 +46,11 @@
 ## Trạng thái tasks
 
 ### Đã hoàn thành
-- *(chưa có)*
+- TASK-01: Khởi tạo Firebase & cấu hình môi trường ✅
+- TASK-02: Cài đặt dependencies & cấu trúc thư mục ✅
+- TASK-03: Firestore Security Rules & Indexes ✅
 
 ### Chưa thực hiện
-- TASK-01: Khởi tạo Firebase & cấu hình môi trường
-- TASK-02: Cài đặt dependencies & cấu trúc thư mục
-- TASK-03: Firestore Security Rules & Indexes
 - TASK-04: `contactMapper.js`
 - TASK-05: `writeContact.js`
 - TASK-06: `pagination.js`
@@ -66,56 +65,43 @@
 - TASK-15: Tests & API docs
 - TASK-16: Deploy production
 
-**Task tiếp theo nên làm:** TASK-01, TASK-02, TASK-03 (song song)
+**Task tiếp theo nên làm:** TASK-04, TASK-05, TASK-06, TASK-10, TASK-12 (có thể làm song song — Đợt 2)
 
 ---
 
-## Cấu trúc file project (mục tiêu)
+## Cấu trúc file hiện tại
 
 ```
 contacts-selfhost/
 ├── functions/
-│   ├── index.js                      # [TASK-11] Express app entry
-│   ├── routes/
-│   │   ├── contacts.js               # [TASK-07] CRUD + search
-│   │   ├── lookup.js                 # [TASK-08] by-email, by-ud-key
-│   │   ├── bulk.js                   # [TASK-09] import/export
-│   │   └── meta.js                   # [TASK-09] stats, categories
-│   ├── middleware/
-│   │   └── auth.js                   # [TASK-10] API key validation
-│   └── utils/
-│       ├── firebase-admin.js         # [TASK-01] Firebase init
-│       ├── contactMapper.js          # [TASK-04] buildContactDocs()
-│       ├── writeContact.js           # [TASK-05] writeContact(), deleteContact()
-│       ├── searchTokens.js           # [TASK-04] buildSearchTokens()
-│       └── pagination.js             # [TASK-06] cursor pagination
+│   ├── utils/
+│   │   ├── firebase-admin.js         ✅ [TASK-01] Firebase singleton init
+│   │   ├── contactMapper.js          🔲 [TASK-04] placeholder
+│   │   ├── writeContact.js           🔲 [TASK-05] placeholder
+│   │   ├── searchTokens.js           🔲 [TASK-04] placeholder
+│   │   └── pagination.js             🔲 [TASK-06] placeholder
+│   ├── routes/                       (thư mục trống — TASK-07,08,09)
+│   └── middleware/                   (thư mục trống — TASK-10)
 │
-├── scripts/
-│   ├── vcf2json.js                   # [TASK-12] VCF parser
-│   ├── import.js                     # [TASK-13] bulk import
-│   ├── export.js                     # [TASK-13] export JSON/VCF
-│   ├── migrate-v2.js                 # [TASK-14] one-time migration
-│   └── create-api-key.js             # [TASK-10] tạo API key mới
+├── scripts/                          (thư mục trống — TASK-10,12,13,14)
+├── docs/                             (thư mục trống — TASK-15)
+├── tests/                            (thư mục trống — TASK-15)
 │
-├── docs/
-│   ├── database-architecture.md      # Spec gốc (không sửa)
-│   └── api.http                      # [TASK-15] API examples
+├── firestore.rules                   ✅ [TASK-03]
+├── firestore.indexes.json            ✅ [TASK-03] 7 composite indexes
+├── database.rules.json               ✅ [TASK-03]
+├── firebase.json                     ✅ [TASK-01]
+├── package.json                      ✅ [TASK-02]
+├── .env.example                      ✅ [TASK-01]
+├── .gitignore                        ✅ [TASK-02]
 │
-├── tests/                            # [TASK-15]
-├── firestore.rules                   # [TASK-03]
-├── firestore.indexes.json            # [TASK-03]
-├── database.rules.json               # [TASK-03]
-├── firebase.json                     # [TASK-01]
-├── package.json                      # [TASK-02]
-├── .env.example                      # [TASK-01]
-│
-├── .opushforce.message               # Auto-updated by agent
-├── CHANGE_LOGS.md                    # Auto-updated by agent
-├── CHANGE_LOGS_USER.md               # Auto-updated by agent
-├── project_memory.md                 # Auto-updated by agent (file này)
-├── project_task.md                   # Task list với trạng thái
-├── template-task.md                  # Hướng dẫn cho agent
-└── Readme.md                         # Docs chính
+├── .opushforce.message               ✅ auto-updated
+├── CHANGE_LOGS.md                    ✅ auto-updated
+├── CHANGE_LOGS_USER.md               ✅ auto-updated
+├── project_memory.md                 ✅ (file này)
+├── project_task.md                   ✅ trạng thái updated
+├── template-task.md
+└── Readme.md
 ```
 
 ---
@@ -128,6 +114,8 @@ contacts-selfhost/
 4. **Pagination:** Cursor-based (không dùng offset — kém hiệu quả với Firestore)
 5. **Không query `contacts_detail` để làm danh sách** — chỉ query `contacts_index`
 6. **API Key hashing:** Lưu hash của key trong Realtime DB, không lưu key gốc
+7. **CommonJS (`require`):** Toàn bộ project dùng `'use strict'` + CommonJS — không dùng ESM (tương thích Cloud Functions)
+8. **`nanoid@^3`:** Dùng v3 (CommonJS) — v4+ chỉ có ESM
 
 ---
 
@@ -144,12 +132,20 @@ PORT=3000
 NODE_ENV=development
 ```
 
+Sau khi copy `.env.example` → `.env`, cần chạy:
+```bash
+npm install
+```
+
 ---
 
 ## Ghi chú quan trọng cho agent
 
 - **Luôn đọc `docs/database-architecture.md`** khi implement — đây là source of truth
 - **Schema của `contacts_index` phải ≤ 1KB/doc** — không thêm field nặng vào đây
-- **`ud_key_lookup` count field** có thể bị lệch nếu chạy migrate nhiều lần — đây là known limitation
+- **`ud_key_lookup` count field** có thể bị lệch nếu chạy migrate nhiều lần — known limitation
 - **Firestore batch limit = 500 operations** — migrate script dùng 400 docs/batch để an toàn
 - **Test với data mẫu** trước khi chạy migration trên 30K contacts thật
+- **`nanoid` phải dùng v3** (CommonJS) — import: `const { nanoid } = require('nanoid')`
+- **`firebase-admin` singleton** — `getFirestore()` và `getRtdb()` trả về cùng instance, gọi nhiều lần an toàn
+- **TASK-04 là prerequisite quan trọng** — contactMapper phải xong trước writeContact (TASK-05) và import (TASK-13)
