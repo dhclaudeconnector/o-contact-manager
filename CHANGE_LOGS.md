@@ -1,3 +1,65 @@
+## [TASK-07,08,09,10,11] 2026-03-28 10:00 — API Routes, Auth Middleware & Express App
+
+### Thay đổi kỹ thuật
+
+**TASK-07 — routes/contacts.js**
+- Tạo mới `functions/routes/contacts.js` — đầy đủ 6 CRUD endpoints:
+  - `GET /contacts` — gọi `parseQueryParams` + `paginateQuery` + `buildListResponse`; validate search >= 2 chars
+  - `GET /contacts/:id` — đọc song song index + detail (`Promise.all`); support `?detail=false` chỉ lấy index
+  - `POST /contacts` — validate có displayName hoặc email; gọi `writeContact`; tăng `meta/stats` async
+  - `PUT /contacts/:id` — kiểm tra contact tồn tại; overwrite với `isUpdate: true`
+  - `PATCH /contacts/:id` — đọc existing detail; deep merge contact + userDefined (null = xóa key); write lại
+  - `DELETE /contacts/:id` — gọi `deleteContact`; giảm `meta/stats` async
+  - `updateStats()` helper — non-critical, silent fail nếu lỗi
+
+**TASK-08 — routes/lookup.js**
+- Tạo mới `functions/routes/lookup.js`:
+  - `GET /contacts/by-email/:email` — decode URI + lowercase; tra `email_lookup/{encodeDocId(email)}`; fetch index + detail song song; trả thêm `matchedEmail` metadata
+  - `GET /contacts/by-ud-key/:key` — tra `ud_key_lookup`; fetch N index docs song song; optional `?detail=true` thêm N reads; trả `matchedUdKey.value`
+  - `GET /contacts/ud-keys` — scan toàn bộ `ud_key_lookup`; filter bỏ entries rỗng; sort by count|key; support `?search` prefix filter
+  - Dùng `contactIds.length` thực tế thay vì `stored count` để tránh inconsistency
+
+**TASK-09 — routes/bulk.js & routes/meta.js**
+- Tạo mới `functions/routes/bulk.js`:
+  - `POST /contacts/bulk/import` — tạo job RTDB; trả `202 Accepted` ngay; process background qua `setImmediate`; concurrency 5; update progress mỗi 50 contacts; lưu `errorSample` (10 entries); final status: completed|partial|failed
+  - `GET /contacts/bulk/import/:jobId` — đọc job status từ RTDB
+  - `GET /contacts/bulk/export` — filter optional by category; support `?format=summary` (stats tổng hợp); `?includeDetail=true` (chunk 10 để tránh too many concurrent); gửi header `Content-Disposition` cho download
+- Tạo mới `functions/routes/meta.js`:
+  - `GET /contacts/meta/stats` — đọc cached (1 read); `?refresh=true` recompute bằng cursor scan toàn bộ contacts_index (500/batch); lưu lại sau recompute
+
+**TASK-10 — middleware/auth.js & scripts/create-api-key.js**
+- Tạo mới `functions/middleware/auth.js`:
+  - Validate `Authorization: Bearer <key>` header
+  - `hashKey(key)` — SHA-256 hex
+  - Lookup `/api_keys/{keyHash}` trong Realtime DB
+  - Kiểm tra `active === false` → 401 Revoked
+  - Kiểm tra `expiresAt` → 401 Expired
+  - Attach `req.apiKey = { hash, ...keyData }`
+  - Update `lastUsedAt` async (`.catch(() => {})` silent fail)
+- Tạo mới `scripts/create-api-key.js`:
+  - Format key: `cm_<64 hex chars>` (32 bytes random)
+  - `--name <name>` — đặt tên key
+  - `--expires <date>` — set expiry date
+  - `--list` — liệt kê tất cả keys (hash, name, status, lastUsed)
+  - `--revoke <hash>` — set `active: false`
+
+**TASK-11 — functions/index.js**
+- Tạo mới `functions/index.js`:
+  - CORS + JSON body parser (10MB limit)
+  - Request logger (development only)
+  - `GET /health` public — trả version, env, timestamp
+  - `authMiddleware` áp dụng cho `/contacts/*`
+  - Mount order: `lookupRouter` → `bulkRouter` → `metaRouter` → `contactsRouter` (tránh `/:id` bắt hết)
+  - 404 handler + global error handler (JSON parse error, payload too large, production message sanitization)
+  - `app.listen(PORT)` với startup log
+
+### Lý do
+- TASK-07-09: Core API — đây là giao diện chính mà user sẽ tương tác
+- TASK-10: Bảo vệ tất cả endpoints; hash key để không lộ key gốc ngay cả khi RTDB bị compromise
+- TASK-11: Entry point — kết nối tất cả components lại; mount order quan trọng để tránh route conflict
+
+---
+
 ## [TASK-04,05,06] 2026-03-28 — Core Utilities: contactMapper, writeContact, pagination
 
 ### Thay đổi kỹ thuật
@@ -45,60 +107,31 @@
 
 **TASK-01 — Firebase Admin SDK init**
 - Tạo mới `functions/utils/firebase-admin.js` — singleton pattern, lazy init
-  - Hỗ trợ 2 cách auth: `FIREBASE_SERVICE_ACCOUNT_PATH` hoặc `GOOGLE_APPLICATION_CREDENTIALS`
-  - Fallback sang Application Default Credentials (dùng được trên Cloud Functions/Cloud Run)
-  - Export: `getFirestore()`, `getRtdb()`, `FieldValue`, `Timestamp`, `admin`
-- Tạo mới `firebase.json` — cấu hình Firestore rules/indexes, Realtime DB rules, Functions runtime nodejs18, Emulators (ports: auth 9099, functions 5001, firestore 8080, db 9000, ui 4000)
+- Tạo mới `firebase.json` — cấu hình Firestore rules/indexes, Realtime DB rules, Functions runtime nodejs18
 - Tạo mới `.env.example` — template biến môi trường với hướng dẫn
 
 **TASK-02 — Dependencies & Project Structure**
-- Tạo mới `package.json`:
-  - Dependencies: `firebase-admin@^12`, `express@^4`, `nanoid@^3`, `cors@^2`, `dotenv@^16`
-  - DevDependencies: `eslint@^8`, `jest@^29`, `nodemon@^3`
-  - Scripts: `start`, `dev`, `test`, `lint`, `import`, `migrate`, `create-key`, `deploy:rules`, `deploy`
-  - Jest config: testMatch `tests/**/*.test.js`
-  - ESLint config inline (node + es2022)
-- Cập nhật `.gitignore` — thêm Firebase debug logs, `.firebase/`, bổ sung pattern secrets
-- Tạo cấu trúc thư mục:
-  - `functions/routes/`, `functions/middleware/`, `functions/utils/`
-  - `scripts/`, `docs/`, `tests/`
-- Tạo placeholder files (TASK-04~06): `contactMapper.js`, `searchTokens.js`, `writeContact.js`, `pagination.js`
+- Tạo mới `package.json` với đầy đủ dependencies, scripts, jest config, eslint config
+- Cập nhật `.gitignore`, tạo cấu trúc thư mục `functions/routes/`, `functions/middleware/`, `scripts/`, `docs/`, `tests/`
 
 **TASK-03 — Firestore Security Rules & Indexes**
-- Tạo mới `firestore.rules` — chặn toàn bộ client-side read/write (`allow read, write: if false`); Admin SDK bypass rules → chỉ backend được truy cập
-- Tạo mới `firestore.indexes.json` — 7 composite indexes:
-  1. `searchTokens CONTAINS` + `updatedAt DESC`
-  2. `categories CONTAINS` + `updatedAt DESC`
-  3. `allEmails CONTAINS` + `updatedAt DESC`
-  4. `allDomains CONTAINS` + `updatedAt DESC`
-  5. `userDefinedKeys CONTAINS` + `updatedAt DESC`
-  6. `categories CONTAINS` + `userDefinedKeys CONTAINS` + `updatedAt DESC`
-  7. `emailDomain ASC` + `displayName ASC`
-- Tạo mới `database.rules.json` — chặn toàn bộ client access cho: `api_keys`, `sync_status`, `import_jobs`
+- Tạo mới `firestore.rules` — chặn toàn bộ client-side access
+- Tạo mới `firestore.indexes.json` — 7 composite indexes
+- Tạo mới `database.rules.json` — chặn client access cho api_keys, sync_status, import_jobs
 
 ### Lý do
 - Foundation cho toàn bộ project — các TASK tiếp theo đều phụ thuộc vào nhóm này
-- Admin SDK singleton tránh khởi tạo nhiều lần trong môi trường Cloud Functions
-- Rules bảo vệ data ngay từ đầu — không để lộ Firestore khi test
-- 7 indexes đủ để support tất cả query patterns trong `docs/database-architecture.md` section 5
 
 ---
 
 ## [TASK-00] 2026-03-28 — Khởi tạo dự án & Lên kế hoạch
 
 ### Thay đổi kỹ thuật
-- Tạo mới `project_task.md` — danh sách 16 tasks với dependency graph, trạng thái, output files
-- Tạo mới `template-task.md` — quy trình chuẩn cho agent thực hiện tasks
-- Tạo mới `project_memory.md` — context toàn bộ project cho agent
-- Tạo mới `Readme.md` — tài liệu dự án
-- Tạo mới `CHANGE_LOGS.md` (file này)
-- Tạo mới `CHANGE_LOGS_USER.md`
+- Tạo mới `project_task.md`, `template-task.md`, `project_memory.md`, `Readme.md`, `CHANGE_LOGS.md`, `CHANGE_LOGS_USER.md`
 - Phân tích `docs/database-architecture.md` và chia nhỏ thành 16 tasks
-- Xác định 6 nhóm task (Foundation, Core Utils, API Routes, Middleware, Scripts, Testing)
 - Xây dựng dependency graph và nhóm song song
 
 ### Lý do
 - Khởi tạo dự án từ tài liệu kiến trúc có sẵn
-- Cần kế hoạch chi tiết để thực hiện tuần tự và song song hiệu quả
 
 ---

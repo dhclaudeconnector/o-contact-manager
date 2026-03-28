@@ -9,13 +9,13 @@
 ## Tính năng
 
 - 📋 Quản lý 30,000+ contacts với hiệu năng cao
-- 🔍 Tìm kiếm prefix real-time (tên, tổ chức, email)
+- 🔍 Tìm kiếm prefix real-time (tên, tổ chức, email) — hỗ trợ tiếng Việt
 - 📧 Tìm kiếm theo bất kỳ email nào (primary hoặc phụ)
 - 🔑 Lưu trữ & tìm kiếm theo userDefined keys (2FA secrets, tokens,...)
 - 🏷️ Phân loại theo categories/tags
-- 📥 Import từ VCF (vCard)
-- 📤 Export JSON/VCF
-- 🔒 API Key authentication
+- 📥 Import hàng loạt (async, có job tracking)
+- 📤 Export JSON
+- 🔒 API Key authentication (SHA-256 hash, expiry, revoke)
 - 💰 Tối ưu Firestore quota (50 reads/page thay vì 30,000)
 
 ---
@@ -64,14 +64,9 @@ Chi tiết đầy đủ: [`docs/database-architecture.md`](docs/database-archite
 ### 2. Clone & cài đặt
 
 ```bash
-# Clone project
 git clone <repo-url>
 cd contacts-selfhost
-
-# Cài dependencies
 npm install
-
-# Cấu hình môi trường
 cp .env.example .env
 ```
 
@@ -89,16 +84,20 @@ NODE_ENV=development
 ```bash
 firebase login
 firebase use your-firebase-project-id
-
 npm run deploy:rules
-# hoặc: firebase deploy --only firestore:rules,firestore:indexes
 ```
 
 ### 5. Tạo API key đầu tiên
 
 ```bash
-node scripts/create-api-key.js
-# → Sẽ in ra API key, lưu lại để dùng trong header Authorization
+node scripts/create-api-key.js --name "My App"
+# → In ra API key, lưu lại để dùng trong header Authorization
+
+# Xem tất cả keys:
+node scripts/create-api-key.js --list
+
+# Thu hồi key:
+node scripts/create-api-key.js --revoke <keyHash>
 ```
 
 ### 6. Chạy server
@@ -118,11 +117,15 @@ Server chạy tại: `http://localhost:3000`
 ## Import Contacts
 
 ```bash
-# Import từ file VCF
-npm run import -- --file contacts_export.vcf
+# Import hàng loạt qua API (async)
+curl -X POST http://localhost:3000/contacts/bulk/import \
+  -H "Authorization: Bearer <api-key>" \
+  -H "Content-Type: application/json" \
+  -d '{"contacts": [...]}'
 
-# Migration nếu đã có data cũ (chạy 1 lần)
-npm run migrate
+# Poll trạng thái job
+curl http://localhost:3000/contacts/bulk/import/<jobId> \
+  -H "Authorization: Bearer <api-key>"
 ```
 
 ---
@@ -133,21 +136,22 @@ Tất cả requests cần header: `Authorization: Bearer <api-key>`
 
 ### Endpoints
 
-| Method | Path                        | Mô tả                           |
-| ------ | --------------------------- | ------------------------------- |
-| GET    | `/health`                   | Health check                    |
-| GET    | `/contacts`                 | Danh sách + search + filter     |
-| GET    | `/contacts/:id`             | Chi tiết 1 contact              |
-| POST   | `/contacts`                 | Tạo mới                         |
-| PUT    | `/contacts/:id`             | Cập nhật toàn bộ                |
-| PATCH  | `/contacts/:id`             | Cập nhật từng phần              |
-| DELETE | `/contacts/:id`             | Xóa                             |
-| GET    | `/contacts/by-email/:email` | Lookup theo email               |
-| GET    | `/contacts/by-ud-key/:key`  | Lookup theo userDefined key     |
-| GET    | `/contacts/ud-keys`         | Liệt kê tất cả userDefined keys |
-| POST   | `/contacts/bulk/import`     | Bulk import (async)             |
-| GET    | `/contacts/bulk/export`     | Export JSON/VCF                 |
-| GET    | `/contacts/meta/stats`      | Thống kê tổng                   |
+| Method | Path | Mô tả |
+| ------ | ---- | ----- |
+| GET | `/health` | Health check (public) |
+| GET | `/contacts` | Danh sách + search + filter |
+| GET | `/contacts/:id` | Chi tiết 1 contact |
+| POST | `/contacts` | Tạo mới |
+| PUT | `/contacts/:id` | Cập nhật toàn bộ |
+| PATCH | `/contacts/:id` | Cập nhật từng phần |
+| DELETE | `/contacts/:id` | Xóa |
+| GET | `/contacts/by-email/:email` | Lookup theo email |
+| GET | `/contacts/by-ud-key/:key` | Lookup theo userDefined key |
+| GET | `/contacts/ud-keys` | Liệt kê tất cả userDefined keys |
+| POST | `/contacts/bulk/import` | Bulk import (async) |
+| GET | `/contacts/bulk/import/:jobId` | Kiểm tra trạng thái import |
+| GET | `/contacts/bulk/export` | Export JSON |
+| GET | `/contacts/meta/stats` | Thống kê tổng |
 
 ### Query params cho GET `/contacts`
 
@@ -164,33 +168,58 @@ limit       number   default 50, max 200
 cursor      string   cursor để phân trang
 ```
 
-Xem ví dụ chi tiết: [`docs/api.http`](docs/api.http)
+### Ví dụ curl
+
+```bash
+BASE=http://localhost:3000
+KEY="cm_your_api_key_here"
+
+# Danh sách
+curl "$BASE/contacts?limit=20" -H "Authorization: Bearer $KEY"
+
+# Tìm kiếm
+curl "$BASE/contacts?search=nguyen" -H "Authorization: Bearer $KEY"
+
+# Lookup theo email
+curl "$BASE/contacts/by-email/john@gmail.com" -H "Authorization: Bearer $KEY"
+
+# Tạo contact
+curl -X POST "$BASE/contacts" \
+  -H "Authorization: Bearer $KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"contact":{"displayName":"John Doe","emails":[{"value":"john@example.com"}]}}'
+
+# Xóa
+curl -X DELETE "$BASE/contacts/uid_abc123" -H "Authorization: Bearer $KEY"
+
+# Stats
+curl "$BASE/contacts/meta/stats" -H "Authorization: Bearer $KEY"
+```
 
 ---
 
 ## Chi phí Firestore (ước tính)
 
-| Hoạt động       | Reads    | Ghi chú                    |
-| --------------- | -------- | -------------------------- |
-| Load trang đầu  | 50       | Pagination 50/trang        |
-| Tìm kiếm        | 50/trang | Dùng searchTokens index    |
-| Xem chi tiết    | 2        | index + detail             |
-| Lookup email    | 2        | O(1)                       |
-| Lookup udKey    | 1+N      | N = số contacts có key đó  |
-| Session 30 phút | ~420     | Trước đây: 30,000/lần load |
+| Hoạt động | Reads | Ghi chú |
+| --------- | ----- | ------- |
+| Load trang đầu | 50 | Pagination 50/trang |
+| Tìm kiếm | 50/trang | Dùng searchTokens index |
+| Xem chi tiết | 2 | index + detail |
+| Lookup email | 3 | O(1) |
+| Session 30 phút | ~420 | Trước đây: 30,000/lần load |
 
 ---
 
 ## Trạng thái phát triển
 
-| Nhóm                 | Tasks           | Trạng thái    |
-| -------------------- | --------------- | ------------- |
-| A — Foundation       | TASK-01, 02, 03 | ✅ Hoàn thành |
-| B — Core Utils       | TASK-04, 05, 06 | 🔲 Chưa làm   |
-| C — API Routes       | TASK-07, 08, 09 | 🔲 Chưa làm   |
-| D — Middleware       | TASK-10, 11     | 🔲 Chưa làm   |
-| E — Scripts          | TASK-12, 13, 14 | 🔲 Chưa làm   |
-| F — Testing & Deploy | TASK-15, 16     | 🔲 Chưa làm   |
+| Nhóm | Tasks | Trạng thái |
+| ---- | ----- | ---------- |
+| A — Foundation | TASK-01, 02, 03 | ✅ Hoàn thành |
+| B — Core Utils | TASK-04, 05, 06 | ✅ Hoàn thành |
+| C — API Routes | TASK-07, 08, 09 | ✅ Hoàn thành |
+| D — Middleware | TASK-10, 11 | ✅ Hoàn thành |
+| E — Scripts | TASK-12, 13, 14 | 🔲 Chưa làm |
+| F — Testing & Deploy | TASK-15, 16 | 🔲 Chưa làm |
 
 Xem chi tiết: [`project_task.md`](project_task.md)
 

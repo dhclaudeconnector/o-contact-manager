@@ -9,7 +9,7 @@
 
 | Tổng task | Hoàn thành | Đang làm | Chưa làm |
 |-----------|------------|----------|----------|
-| 16        | 6          | 0        | 10       |
+| 16        | 11         | 0        | 5        |
 
 ---
 
@@ -63,7 +63,7 @@
 - **Phụ thuộc:** TASK-02 (cấu trúc thư mục)
 - **Song song với:** TASK-05
 - **Mục tiêu hoàn thành:**
-  - [x] `buildContactDocs(contactJson, options)` trả về `{ contactId, indexDoc, detailDoc, emailLookupDocs, udKeyUpdates }`
+  - [x] `buildContactDocs(contactJson, options)` trả về đúng format
   - [x] `buildSearchTokens()` xử lý prefix + NFD normalize đúng
   - [x] Unit test cơ bản pass (35 tests pass)
   - [x] allEmails deduplication đúng (lowercase + unique)
@@ -100,40 +100,41 @@
 ## Nhóm C — API Routes
 
 ### TASK-07 · Viết `routes/contacts.js` — CRUD cơ bản
-- **Trạng thái:** `[ ] CHƯA THỰC HIỆN`
+- **Trạng thái:** `[x] HOÀN THÀNH — 2026-03-28 10:00`
 - **Phụ thuộc:** TASK-05 (writeContact), TASK-06 (pagination)
 - **Song song với:** TASK-08, TASK-09
-- **Endpoints cần implement:**
-  - [ ] `GET /contacts` — list + search + filter (query params đầy đủ theo section 8)
-  - [ ] `GET /contacts/:id` — detail (2 reads: index + detail)
-  - [ ] `POST /contacts` — tạo mới
-  - [ ] `PUT /contacts/:id` — cập nhật toàn bộ
-  - [ ] `PATCH /contacts/:id` — cập nhật từng phần
-  - [ ] `DELETE /contacts/:id` — xóa
+- **Mục tiêu hoàn thành:**
+  - [x] `GET /contacts` — list + search + filter (query params đầy đủ theo section 8)
+  - [x] `GET /contacts/:id` — detail (2 reads: index + detail)
+  - [x] `POST /contacts` — tạo mới
+  - [x] `PUT /contacts/:id` — cập nhật toàn bộ
+  - [x] `PATCH /contacts/:id` — cập nhật từng phần
+  - [x] `DELETE /contacts/:id` — xóa
 - **Output file:** `functions/routes/contacts.js`
 
 ---
 
 ### TASK-08 · Viết `routes/lookup.js` — reverse lookup endpoints
-- **Trạng thái:** `[ ] CHƯA THỰC HIỆN`
+- **Trạng thái:** `[x] HOÀN THÀNH — 2026-03-28 10:00`
 - **Phụ thuộc:** TASK-01 (firebase-admin)
 - **Song song với:** TASK-07, TASK-09
-- **Endpoints cần implement:**
-  - [ ] `GET /contacts/by-email/:email` — email → contactId (O1, 3 reads)
-  - [ ] `GET /contacts/by-ud-key/:key` — udKey → tất cả contacts (1+N reads)
-  - [ ] `GET /contacts/ud-keys` — liệt kê tất cả unique keys (~10-30 reads)
+- **Mục tiêu hoàn thành:**
+  - [x] `GET /contacts/by-email/:email` — email → contactId (O1, 3 reads)
+  - [x] `GET /contacts/by-ud-key/:key` — udKey → tất cả contacts (1+N reads)
+  - [x] `GET /contacts/ud-keys` — liệt kê tất cả unique keys (~10-30 reads)
 - **Output file:** `functions/routes/lookup.js`
 
 ---
 
 ### TASK-09 · Viết `routes/bulk.js` & `routes/meta.js`
-- **Trạng thái:** `[ ] CHƯA THỰC HIỆN`
+- **Trạng thái:** `[x] HOÀN THÀNH — 2026-03-28 10:00`
 - **Phụ thuộc:** TASK-05 (writeContact), TASK-01 (firebase-admin)
 - **Song song với:** TASK-07, TASK-08
-- **Endpoints cần implement:**
-  - [ ] `POST /contacts/bulk/import` — async bulk import (job tracking qua Realtime DB)
-  - [ ] `GET /contacts/bulk/export` — export JSON/VCF
-  - [ ] `GET /contacts/meta/stats` — đọc `meta/stats` (1 read)
+- **Mục tiêu hoàn thành:**
+  - [x] `POST /contacts/bulk/import` — async bulk import (job tracking qua Realtime DB)
+  - [x] `GET /contacts/bulk/import/:jobId` — poll job status
+  - [x] `GET /contacts/bulk/export` — export JSON/VCF
+  - [x] `GET /contacts/meta/stats` — đọc `meta/stats` (1 read)
 - **Output file:** `functions/routes/bulk.js`, `functions/routes/meta.js`
 
 ---
@@ -141,28 +142,29 @@
 ## Nhóm D — Middleware & Auth
 
 ### TASK-10 · Viết `middleware/auth.js` — API key authentication
-- **Trạng thái:** `[ ] CHƯA THỰC HIỆN`
+- **Trạng thái:** `[x] HOÀN THÀNH — 2026-03-28 10:00`
 - **Phụ thuộc:** TASK-01 (firebase-admin — cần Realtime DB access)
-- **Song song với:** TASK-07, TASK-08, TASK-09 (nhưng nên xong trước khi test routes)
+- **Song song với:** TASK-07, TASK-08, TASK-09
 - **Mục tiêu hoàn thành:**
-  - [ ] Validate `Authorization: Bearer <key>` header
-  - [ ] Lookup key hash từ `/api_keys/{keyHash}` trong Realtime DB
-  - [ ] Rate limiting cơ bản (optional)
-  - [ ] Script tạo API key mới
+  - [x] Validate `Authorization: Bearer <key>` header
+  - [x] Lookup key hash dari `/api_keys/{keyHash}` di Realtime DB
+  - [x] Cập nhật `lastUsedAt` async (non-blocking)
+  - [x] Kiểm tra active + expiry
+  - [x] Script tạo API key mới (`scripts/create-api-key.js`) với --list, --revoke
 - **Output file:** `functions/middleware/auth.js`, `scripts/create-api-key.js`
 
 ---
 
 ### TASK-11 · Viết `functions/index.js` — Express app entry point
-- **Trạng thái:** `[ ] CHƯA THỰC HIỆN`
+- **Trạng thái:** `[x] HOÀN THÀNH — 2026-03-28 10:00`
 - **Phụ thuộc:** TASK-07, TASK-08, TASK-09, TASK-10
 - **Song song với:** Không (cần tất cả routes + middleware xong)
 - **Mục tiêu hoàn thành:**
-  - [ ] Express app với CORS, JSON parser
-  - [ ] Mount tất cả routes đúng path
-  - [ ] Error handler global
-  - [ ] Export cho Cloud Functions hoặc chạy standalone
-  - [ ] Health check endpoint `GET /health`
+  - [x] Express app với CORS, JSON parser
+  - [x] Mount tất cả routes đúng path
+  - [x] Error handler global
+  - [x] Export cho Cloud Functions hoặc chạy standalone
+  - [x] Health check endpoint `GET /health`
 - **Output file:** `functions/index.js`
 
 ---
@@ -271,7 +273,7 @@ TASK-03 ──┘
 |-----|---------------------------|
 | 1   | ~~TASK-01, TASK-02, TASK-03~~, TASK-12 |
 | 2   | ~~TASK-04, TASK-05, TASK-06~~, TASK-10, TASK-13, TASK-14 |
-| 3   | TASK-07, TASK-08, TASK-09 |
-| 4   | TASK-11 |
+| 3   | ~~TASK-07, TASK-08, TASK-09~~ |
+| 4   | ~~TASK-11~~ |
 | 5   | TASK-15 |
 | 6   | TASK-16 |
