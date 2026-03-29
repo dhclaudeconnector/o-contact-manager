@@ -1,1 +1,26 @@
-Tạo postman
+Đã tạo
+1. Tài liệu kiến trúc
+
+FRONTEND_ARCHITECTURE.md — Tech stack, cấu trúc thư mục đầy đủ, data flow, state management strategy, responsive design, Google Contacts feature parity
+FRONTEND_TASKS.md — 18 tasks chi tiết với tiêu chí hoàn thành đo lường được, có thể chạy song song tối đa 6 tasks/đợt
+
+2. Project Setup files
+
+package.json — dependencies đầy đủ
+vite.config.ts — PWA plugin, path aliases, proxy, code splitting
+tsconfig.json — strict TypeScript
+tailwind.config.ts — custom Google palette, animations, responsive breakpoints
+
+3. Foundation Code
+
+src/types/contact.types.ts — Tất cả TypeScript types match 100% với backend schema
+src/types/pagination.types.ts — Cursor pagination types
+src/types/common.types.ts — API response, view modes
+src/constants/config.ts — Env vars, stale times, avatar colors, form options
+src/constants/queryKeys.ts — TanStack Query key factories
+src/constants/routes.ts — Typed route constants
+src/api/client.ts — Axios với auth interceptors, 401 redirect
+
+Thứ tự thực hiện song song
+ĐợtTasksƯớc tính1FE-01 (Vite init)1h2FE-02, FE-032.5h3FE-04, FE-05, FE-07, FE-083h4FE-06, FE-09, FE-10, FE-11, FE-12, FE-134h5FE-14, FE-15, FE-16, FE-172h6FE-18 (PWA integration)2h
+Tổng: ~14h song song cho frontend hoàn chỉnh giống Google Contacts với PWA.

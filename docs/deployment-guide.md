@@ -55,6 +55,7 @@ CORS_ORIGINS=https://contacts.yourdomain.com
 ```
 
 Upload `serviceAccountKey.json`:
+
 ```bash
 # Từ máy local
 scp ./serviceAccountKey.json user@your-server:/opt/contacts-selfhost/serviceAccountKey.json
@@ -101,7 +102,8 @@ node scripts/create-api-key.js --name "Admin"
 
 ```bash
 # Import từ VCF
-npm run import -- --file /path/to/contacts.vcf
+npm run import --file vcf/contacts.all.vcf
+node scripts/import.js --file vcf/contacts.all.vcf
 
 # Migration nếu đã có data cũ trong Firestore (chỉ chạy 1 lần)
 npm run migrate
@@ -218,11 +220,12 @@ Phù hợp nếu muốn serverless, không cần quản lý server.
 Thêm vào cuối `functions/index.js`:
 
 ```js
-const functions = require('firebase-functions');
+const functions = require("firebase-functions");
 exports.api = functions.https.onRequest(app);
 ```
 
 Cài thêm dependency:
+
 ```bash
 npm install firebase-functions
 ```
@@ -304,11 +307,11 @@ gcloud firestore export gs://your-bucket/backups/$(date +%Y%m%d)
 
 ## Xử lý sự cố thường gặp
 
-| Vấn đề | Nguyên nhân | Cách xử lý |
-|--------|-------------|------------|
-| 401 Unauthorized | Key sai hoặc header format sai | Dùng đúng `Authorization: Bearer <key>` |
-| 403 Forbidden | Key đã disabled hoặc hết hạn | Tạo key mới hoặc set active: true |
-| Query chậm | Index chưa build xong | Chờ Firebase Console báo "Enabled" |
-| Import timeout | Concurrency quá cao | Giảm `--concurrency` xuống 3-5 |
-| Firestore quota | Đọc nhiều hơn 50K/ngày | Tăng limit hoặc upgrade Firebase plan |
-| PATCH mất data | Body không đủ fields | PATCH merge vào existing — chỉ cần gửi fields cần thay |
+| Vấn đề           | Nguyên nhân                    | Cách xử lý                                             |
+| ---------------- | ------------------------------ | ------------------------------------------------------ |
+| 401 Unauthorized | Key sai hoặc header format sai | Dùng đúng `Authorization: Bearer <key>`                |
+| 403 Forbidden    | Key đã disabled hoặc hết hạn   | Tạo key mới hoặc set active: true                      |
+| Query chậm       | Index chưa build xong          | Chờ Firebase Console báo "Enabled"                     |
+| Import timeout   | Concurrency quá cao            | Giảm `--concurrency` xuống 3-5                         |
+| Firestore quota  | Đọc nhiều hơn 50K/ngày         | Tăng limit hoặc upgrade Firebase plan                  |
+| PATCH mất data   | Body không đủ fields           | PATCH merge vào existing — chỉ cần gửi fields cần thay |
