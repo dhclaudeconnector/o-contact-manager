@@ -14,7 +14,7 @@ module.exports = {
   apps: [
     {
       name: 'contact-manager',
-      script: 'functions/index.js',
+      script: 'src/index.js',
 
       // Chạy 1 instance (contact manager là personal use)
       instances: 1,
