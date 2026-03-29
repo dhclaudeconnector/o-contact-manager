@@ -1,0 +1,12 @@
+Motivation
+Prepare the project for production by adding a lockfile and updating deployment configuration and docs to match the repository layout.
+Tighten API surface and observability by adding an origin allowlist for browser clients, request IDs and security headers.
+Prevent internal error information leakage and centralize error logging across routes.
+Remove Cloud Functions deployment references because the repo runs as a standalone src/ server.
+Description
+Added package-lock.json to lock dependencies for reproducible installs and supply-chain scanning.
+Updated firebase.json to remove the functions block and removed the deploy:functions npm script from package.json to reflect that the project runs from src/.
+Updated docs/deployment-guide.md and .env.example to document CORS_ORIGINS and to use src/index.js in the PM2 ecosystem example.
+Implemented production-safe CORS handling in src/index.js via buildCorsOptions() that reads CORS_ORIGINS, switched to app.use(cors(...)), added generation/propagation of X-Request-Id (uses nanoid), and set additional security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy).
+Added centralized error handling improvements: enhanced global error handler to include requestId and hide raw error messages in production, and added internalError() helper in src/routes/* to standardize logging and responses.
+Added docs/production-audit-2026-03-29.md documenting a preliminary audit and blockers.
