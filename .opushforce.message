@@ -1,1 +1,23 @@
-Cập nhật src-frontend
+Stores (FE-05 complete):
+
+store/auth.store.ts, store/ui.store.ts, store/filter.store.ts
+
+Hook (FE-06 complete):
+
+hooks/useDebounce.ts
+
+UI Components (FE-08 complete):
+
+components/ui/Spinner.tsx, Input.tsx, Badge.tsx, Avatar.tsx, Modal.tsx, Drawer.tsx, Dropdown.tsx, EmptyState.tsx, ErrorBoundary.tsx, ConfirmDialog.tsx, index.ts
+
+Layout Components (FE-09 started):
+
+components/layout/Sidebar.tsx, TopBar.tsx, BottomNav.tsx, FloatingActionButton.tsx, AppShell.tsx (AppShell file created but not yet presented — continue in next message)
+
+Still needed:
+
+All contact components (ContactAvatar, ContactListItem, ContactList, ContactDetail, ContactForm, ContactCard, ContactFormFields, ContactActions)
+Search components (SearchBar, FilterChips, FilterDrawer, SearchResults)
+Bulk components (ImportButton, ImportProgress, ExportButton)
+All 9 pages
+App.tsx, main.tsx, index.css, PWA files, postcss config
